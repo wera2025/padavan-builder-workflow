@@ -1,22 +1,22 @@
 #!/bin/bash
+# Включаем sha256sum в BusyBox Padavan
 
-BUSYBOX_CONFIG="padavan-ng/trunk/user/busybox/busybox.config"
+# Ищем любой существующий конфиг BusyBox
+CFG=$(find padavan-ng/trunk/user/busybox -maxdepth 2 -name ".config" -o -name "busybox.config" | head -n1)
 
-echo "=== Enabling sha256sum in BusyBox ==="
-
-if [ -f "$BUSYBOX_CONFIG" ]; then
-    # Удаляем старые строки, чтобы не было дублей
-    sed -i '/CONFIG_SHA256SUM/d' "$BUSYBOX_CONFIG"
-    sed -i '/CONFIG_FEATURE_MD5_SHA1_SUM_CHECK/d' "$BUSYBOX_CONFIG"
-
-    # Включаем sha256sum и проверку контрольных сумм
-    echo "CONFIG_SHA256SUM=y" >> "$BUSYBOX_CONFIG"
-    echo "CONFIG_FEATURE_MD5_SHA1_SUM_CHECK=y" >> "$BUSYBOX_CONFIG"
-
-    echo "=== Готово. Проверка: ==="
-    grep -E "SHA256SUM|MD5_SHA1_SUM_CHECK" "$BUSYBOX_CONFIG"
-else
-    echo "!!! Не найден $BUSYBOX_CONFIG !!!"
-    echo "Ищу конфиги BusyBox:"
-    find padavan-ng/trunk/user/busybox -maxdepth 2 -type f -name "*.config" -o -name ".config"
+if [ -z "$CFG" ]; then
+    echo "Конфиг BusyBox не найден, создаём пустой и включаем sha256sum"
+    CFG="padavan-ng/trunk/user/busybox/busybox.config"
+    touch "$CFG"
 fi
+
+# Включаем нужные опции
+if grep -q "CONFIG_SHA256SUM" "$CFG"; then
+    sed -i 's/^# CONFIG_SHA256SUM is not set/CONFIG_SHA256SUM=y/' "$CFG"
+    sed -i 's/^CONFIG_SHA256SUM=n/CONFIG_SHA256SUM=y/' "$CFG"
+else
+    echo "CONFIG_SHA256SUM=y" >> "$CFG"
+fi
+
+echo "sha256sum включён в $CFG"
+cat "$CFG" | grep SHA256
