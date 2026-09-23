@@ -1,22 +1,9 @@
 #!/bin/bash
-# Включаем sha256sum в BusyBox Padavan
+echo "=== Makefile.local ==="
+find padavan-ng/trunk/user/busybox -name "Makefile.local" -exec cat {} \;
 
-# Ищем любой существующий конфиг BusyBox
-CFG=$(find padavan-ng/trunk/user/busybox -maxdepth 2 -name ".config" -o -name "busybox.config" | head -n1)
+echo "=== Все .config и defconfig ==="
+find padavan-ng/trunk/user/busybox -name "*.config" -o -name ".config" -o -name "*defconfig*" 2>/dev/null
 
-if [ -z "$CFG" ]; then
-    echo "Конфиг BusyBox не найден, создаём пустой и включаем sha256sum"
-    CFG="padavan-ng/trunk/user/busybox/busybox.config"
-    touch "$CFG"
-fi
-
-# Включаем нужные опции
-if grep -q "CONFIG_SHA256SUM" "$CFG"; then
-    sed -i 's/^# CONFIG_SHA256SUM is not set/CONFIG_SHA256SUM=y/' "$CFG"
-    sed -i 's/^CONFIG_SHA256SUM=n/CONFIG_SHA256SUM=y/' "$CFG"
-else
-    echo "CONFIG_SHA256SUM=y" >> "$CFG"
-fi
-
-echo "sha256sum включён в $CFG"
-cat "$CFG" | grep SHA256
+echo "=== SHA256SUM во всех конфигах ==="
+grep -r "SHA256SUM" padavan-ng/trunk/user/busybox/ 2>/dev/null | grep -v "\.c:"
