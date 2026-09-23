@@ -1,9 +1,15 @@
 #!/bin/bash
-echo "=== Makefile.local ==="
-find padavan-ng/trunk/user/busybox -name "Makefile.local" -exec cat {} \;
+# Включаем sha256sum для BusyBox через главный конфиг Padavan
 
-echo "=== Все .config и defconfig ==="
-find padavan-ng/trunk/user/busybox -name "*.config" -o -name ".config" -o -name "*defconfig*" 2>/dev/null
+BUILD_CONFIG="build.config"
 
-echo "=== SHA256SUM во всех конфигах ==="
-grep -r "SHA256SUM" padavan-ng/trunk/user/busybox/ 2>/dev/null | grep -v "\.c:"
+if [ -f "$BUILD_CONFIG" ]; then
+    # Удаляем возможные старые строки (на всякий случай)
+    sed -i '/CONFIG_BUSYBOX_CONFIG_SHA256SUM/d' "$BUILD_CONFIG"
+    # Добавляем новую
+    echo "CONFIG_BUSYBOX_CONFIG_SHA256SUM=y" >> "$BUILD_CONFIG"
+    echo "=== Проверка build.config ==="
+    grep "SHA256SUM" "$BUILD_CONFIG"
+else
+    echo "ОШИБКА: build.config не найден!"
+fi
